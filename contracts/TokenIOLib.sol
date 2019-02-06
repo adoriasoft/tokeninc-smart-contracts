@@ -831,9 +831,8 @@ library TokenIOLib {
    * @return { "success" : "Return true if successfully called from another contract" }
    */
   function setRegisteredFirm(Data storage self, string issuerFirm, bool approved) internal returns (bool success) {
-    bytes32 id = keccak256(abi.encodePacked('registered.firm', issuerFirm));
     require(
-      self.Storage.setBool(id, approved),
+      self.Storage.setFirm(issuerFirm, approved),
       "Error: Unable to set storage value. Please ensure contract has allowed permissions with storage contract."
     );
     return true;
@@ -855,17 +854,9 @@ library TokenIOLib {
       isRegisteredFirm(self, issuerFirm),
       "Error: `issuerFirm` must be registered.");
 
-    bytes32 id_a = keccak256(abi.encodePacked('registered.authority', issuerFirm, authorityAddress));
-    bytes32 id_b = keccak256(abi.encodePacked('registered.authority.firm', authorityAddress));
-
     require(
-      self.Storage.setBool(id_a, approved),
+      self.Storage.setRegisteredAuthority(issuerFirm, authorityAddress, approved),
       "Error: Unable to set storage value. Please ensure contract has allowed permissions with storage contract.");
-
-    require(
-      self.Storage.setString(id_b, issuerFirm),
-      "Error: Unable to set storage value. Please ensure contract has allowed permissions with storage contract.");
-
 
     return true;
   }
@@ -878,8 +869,7 @@ library TokenIOLib {
    * @return { "issuerFirm" : "Name of the firm registered to authority" }
    */
   function getFirmFromAuthority(Data storage self, address authorityAddress) internal view returns (string issuerFirm) {
-    bytes32 id = keccak256(abi.encodePacked('registered.authority.firm', getForwardedAccount(self, authorityAddress)));
-    return self.Storage.getString(id);
+    return self.Storage.getFirmFromAuthority(authorityAddress);
   }
 
   /**
@@ -889,8 +879,7 @@ library TokenIOLib {
    * @return { "registered" : "Return if the issuer firm has been registered" }
    */
   function isRegisteredFirm(Data storage self, string issuerFirm) internal view returns (bool registered) {
-    bytes32 id = keccak256(abi.encodePacked('registered.firm', issuerFirm));
-    return self.Storage.getBool(id);
+    return self.Storage.getFirmStatus(issuerFirm);
   }
 
   /**
@@ -901,8 +890,7 @@ library TokenIOLib {
    * @return { "registered" : "Return if the authority is registered with the issuer firm" }
    */
   function isRegisteredToFirm(Data storage self, string issuerFirm, address authorityAddress) internal view returns (bool registered) {
-    bytes32 id = keccak256(abi.encodePacked('registered.authority', issuerFirm, getForwardedAccount(self, authorityAddress)));
-    return self.Storage.getBool(id);
+    return self.Storage.isRegisteredToFirm(issuerFirm, getForwardedAccount(self, authorityAddress));
   }
 
   /**
@@ -913,8 +901,7 @@ library TokenIOLib {
    * @return { "registered" : "Return if the authority is registered" }
    */
   function isRegisteredAuthority(Data storage self, address authorityAddress) internal view returns (bool registered) {
-    bytes32 id = keccak256(abi.encodePacked('registered.authority', getFirmFromAuthority(self, getForwardedAccount(self, authorityAddress)), getForwardedAccount(self, authorityAddress)));
-    return self.Storage.getBool(id);
+    return !compare(getFirmFromAuthority(self, getForwardedAccount(self, authorityAddress)), "");
   }
 
   /**
@@ -1221,6 +1208,25 @@ library TokenIOLib {
     uint usdAmount = ((fxAmount.mul(getFxUSDBPSRate(self, currency)).div(10000)).mul(10**usdDecimals)).div(10**fxDecimals);
     return usdAmount;
   }
+
+  function compare(string _a, string _b) internal pure returns (bool) {
+        bytes memory a = bytes(_a);
+        bytes memory b = bytes(_b);
+        uint minLength = a.length;
+        if (b.length < minLength) minLength = b.length;
+        //@todo unroll the loop into increments of 32 and do full 32 byte comparisons
+        for (uint i = 0; i < minLength; i ++)
+            if (a[i] < b[i])
+                return false;
+            else if (a[i] > b[i])
+                return false;
+        if (a.length < b.length)
+            return false;
+        else if (a.length > b.length)
+            return false;
+        else
+            return true;
+    }
 
 
 }
