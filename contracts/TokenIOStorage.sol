@@ -646,7 +646,7 @@ contract TokenIOStorage is Ownable {
      * @param _fxUSDBPSRate  usdbps rate
      * @return { "uint" : "Returns the uint value associated with the key" }
      */
-    function setTokenfxUSDBPSRate(address _address, uint _fxUSDBPSRate) external returns(bool success) {
+    function setTokenfxUSDBPSRate(address _address, uint _fxUSDBPSRate) external onlyOwner returns(bool success) {
         assets[_address].fxUSDBPSRate = _fxUSDBPSRate;
         return true;
     }
@@ -660,7 +660,6 @@ contract TokenIOStorage is Ownable {
         delete assets[_address].fxUSDBPSRate;
         return true;
     }
-
 
     function setFirm(string firmName, bool approved) external onlyOwner returns (bool success) {
       firms.push(Firm(firmName, address(0), approved));
