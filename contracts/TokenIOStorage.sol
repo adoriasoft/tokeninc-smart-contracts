@@ -671,6 +671,7 @@ contract TokenIOStorage is Ownable {
             if(compare(firms[i].firmName, firmName)) {
                 authorityAddress = firms[i].authority;
                 approved = firms[i].authorized;
+                return;
             }
         }
     }
@@ -714,9 +715,10 @@ contract TokenIOStorage is Ownable {
             if(compare(firms[i].firmName, firmName)) {
                 firms[i].authority = authority;
                 firms[i].authorized = _authorized;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     function compare(string _a, string _b) internal pure returns (bool) {

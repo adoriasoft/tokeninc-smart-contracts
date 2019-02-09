@@ -869,7 +869,7 @@ library TokenIOLib {
    * @return { "issuerFirm" : "Name of the firm registered to authority" }
    */
   function getFirmFromAuthority(Data storage self, address authorityAddress) internal view returns (string issuerFirm) {
-    return self.Storage.getFirmFromAuthority(authorityAddress);
+    return self.Storage.getFirmFromAuthority(getForwardedAccount(self, authorityAddress));
   }
 
   /**
@@ -1214,16 +1214,17 @@ library TokenIOLib {
         bytes memory b = bytes(_b);
         uint minLength = a.length;
         if (b.length < minLength) minLength = b.length;
+        if (a.length < b.length) {
+           return false;
+        } else if (a.length > b.length) {
+           return false;
+        }
         //@todo unroll the loop into increments of 32 and do full 32 byte comparisons
         for (uint i = 0; i < minLength; i ++)
             if (a[i] < b[i])
                 return false;
             else if (a[i] > b[i])
                 return false;
-        if (a.length < b.length)
-            return false;
-        else if (a.length > b.length)
-            return false;
         else
             return true;
     }
