@@ -71,13 +71,6 @@ contract TokenIOStorage is Ownable {
         uint flatFee;
     }
 
-    struct Firm {
-        string firmName;
-        address authority;
-        bool authorized;
-    }
-    
-
     mapping(address => mapping(string => uint256)) internal balances;
 
     mapping(address => FeeData)      internal fees;
@@ -92,8 +85,6 @@ contract TokenIOStorage is Ownable {
     mapping(bytes32 => bytes)        internal bytesStorage;
     mapping(bytes32 => bool)         internal boolStorage;
     mapping(bytes32 => int256)       internal intStorage;
-
-    Firm[] firms;
 
     constructor() public {
                 /// @notice owner is set to msg.sender by default
@@ -646,7 +637,7 @@ contract TokenIOStorage is Ownable {
      * @param _fxUSDBPSRate  usdbps rate
      * @return { "uint" : "Returns the uint value associated with the key" }
      */
-    function setTokenfxUSDBPSRate(address _address, uint _fxUSDBPSRate) external onlyOwner returns(bool success) {
+    function setTokenfxUSDBPSRate(address _address, uint _fxUSDBPSRate) external view returns(bool success) {
         assets[_address].fxUSDBPSRate = _fxUSDBPSRate;
         return true;
     }
@@ -656,73 +647,9 @@ contract TokenIOStorage is Ownable {
      * @param _address Pointer identifier for value in mapping
      * @return { "uint" : "Returns the uint value associated with the key" }
      */
-    function deleteTokenfxUSDBPSRate(address _address) external onlyOwner returns(bool success) {
+    function deleteTokenfxUSDBPSRate(address _address) external view returns(bool success) {
         delete assets[_address].fxUSDBPSRate;
         return true;
-    }
-
-    function setFirm(string firmName, bool approved) external onlyOwner returns (bool success) {
-      firms.push(Firm(firmName, address(0), approved));
-      return true;
-    }
-
-    function getFirmDetails(string firmName) external view returns(address authorityAddress, bool approved) {
-        for(uint i = 0; i < firms.length; i++) {
-            if(compare(firms[i].firmName, firmName)) {
-                authorityAddress = firms[i].authority;
-                approved = firms[i].authorized;
-                return;
-            }
-        }
-    }
-    
-    function getFirmStatus(string firmName) external view returns (bool approved) {
-      for(uint i = 0; i < firms.length; i++) {
-            if(compare(firms[i].firmName, firmName)) {
-                return firms[i].authorized;
-            }
-      }
-      return false;
-    }
-
-    function getFirmFromAuthority(address authorityAddress) external view returns (string issuerFirm) {
-      for(uint i = 0; i < firms.length; i++) {
-            if(firms[i].authority == authorityAddress) {
-                return firms[i].firmName;
-            }
-      }
-      return "";
-    }
-
-    function isRegisteredToFirm(string issuerFirm, address authorityAddress) external view returns (bool success) {
-      for(uint i = 0; i < firms.length; i++) {
-            if(compare(firms[i].firmName, issuerFirm)) {
-                return firms[i].authority == authorityAddress;
-            }
-      }
-      return false;
-    }
-
-    /**
-     * @notice Registers an authority asoociated with the given firm as true/false
-     * @param firmName Name of firm
-     * @param authority Address of authority account
-     * @param _authorized Authorization status
-     * @return {"success" : "Returns true if lib.setRegisteredAuthority succeeds"}
-     */
-    function setRegisteredAuthority(string firmName, address authority, bool _authorized) external onlyOwner returns (bool success) {
-        for(uint i = 0; i < firms.length; i++) {
-            if(compare(firms[i].firmName, firmName)) {
-                firms[i].authority = authority;
-                firms[i].authorized = _authorized;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    function compare(string _a, string _b) internal pure returns (bool) {
-        return keccak256(_a) == keccak256(_b);
     }
 
 }
