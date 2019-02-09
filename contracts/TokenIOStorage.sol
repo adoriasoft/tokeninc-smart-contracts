@@ -722,22 +722,7 @@ contract TokenIOStorage is Ownable {
     }
 
     function compare(string _a, string _b) internal pure returns (bool) {
-        bytes memory a = bytes(_a);
-        bytes memory b = bytes(_b);
-        uint minLength = a.length;
-        if (b.length < minLength) minLength = b.length;
-        //@todo unroll the loop into increments of 32 and do full 32 byte comparisons
-        for (uint i = 0; i < minLength; i ++)
-            if (a[i] < b[i])
-                return false;
-            else if (a[i] > b[i])
-                return false;
-        if (a.length < b.length)
-            return false;
-        else if (a.length > b.length)
-            return false;
-        else
-            return true;
+        return keccak256(_a) == keccak256(_b);
     }
 
 }
